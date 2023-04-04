@@ -5,9 +5,9 @@ const Booking = require("../models/booking");
 exports.add = async (req, res) => {
   let images = []
   for (let i=0; i<req.files.length; i++) {
-    console.log(req.files[i].path.split('\\')[1])
+    console.log(req.files[i].path.split('/')[1])
     console.log(req.files[i])
-    images.push(req.files[i].path.split('\\')[1])
+    images.push(req.files[i].path.split('/')[1])
   }
   const {name, description, price} = req.body;
 
