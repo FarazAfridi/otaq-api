@@ -49,7 +49,7 @@ exports.getSinglePlace = async (req, res) => {
 }
 
 exports.bookPlace = async (req, res) => {
-  const booking = await new Booking({user: req.user.userId, place: req.body.placeId})
+  const booking = await new Booking({user: req.user.userId, place: req.body.placeId, startDate: req.body.startDate, lastDate: req.body.lastDate})
   await booking.save()
   res.json("place booked")
 }

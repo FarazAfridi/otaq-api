@@ -31,7 +31,3 @@ router.post('/book',isAuth , placesController.bookPlace)
 router.get('/book',isAuth, isAdmin , placesController.getBookedPlaces)
 
 module.exports = router;
-
-//eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAMy5jb20iLCJ1c2VySWQiOiI2NDBhMThjZDFmNWEzODMyY2NlMjgyOGEiLCJpYXQiOjE2ODAxODY0MjIsImV4cCI6MTY4MDE5MDAyMn0.wO5Z-1-aSq55FTGolCWsJyqRpK0KmOx8RPRYq3Z_jO4
-
-//64145996b61d8af97d2fb310
