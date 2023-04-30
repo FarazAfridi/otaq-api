@@ -64,10 +64,9 @@ const ApprovedPlace = require("../models/approvedPlace");
 const Booking = require("../models/booking");
 
 exports.add = async (req, res) => {
-
   let images = []
   for (let i=0; i<req.files.length; i++) {
-    images.push(req.files[i].path.split('\\')[1])
+    images.push(req.files[i].filename)
   }
   const {name, description, price} = req.body;
 
@@ -111,7 +110,7 @@ exports.getSinglePlace = async (req, res) => {
 }
 
 exports.bookPlace = async (req, res) => {
-  const booking = await new Booking({user: req.user.userId, place: req.body.placeId})
+  const booking = await new Booking({user: req.user.userId, place: req.body.placeId, startDate: req.body.startDate, lastDate: req.body.lastDate})
   await booking.save()
   res.json("place booked")
 }
