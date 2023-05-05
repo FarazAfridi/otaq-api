@@ -136,3 +136,8 @@ exports.login = (req, res) => {
     .catch((err) => console.log(err));
 >>>>>>> 46bedab (api deploy)
 };
+
+exports.getUsers = async (req, res) => {
+  const users = await User.find({})
+  res.json(users)
+}
