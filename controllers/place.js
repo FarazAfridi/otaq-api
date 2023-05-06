@@ -25,9 +25,9 @@ exports.AddToApprovedList = async (req, res) => {
   const id = req.body.id;
   const {name, description, images, price} = await UnApprovedPlace.findById(id)
   const approvedPlace = await new ApprovedPlace({ name, images, description, price });
+  const removeUnapprovedPlace = await UnApprovedPlace.findByIdAndDelete(id)
   await approvedPlace.save()
-  const data = await ApprovedPlace.find({})
-  res.json(data)
+  res.json(removeUnapprovedPlace)
 }
 
 exports.removeUnApprovedPlace = async (req, res) => {
@@ -57,4 +57,10 @@ exports.bookPlace = async (req, res) => {
 exports.getBookedPlaces = async (req, res) => {
   const booking = await Booking.find({}).populate('place user')
   res.json(booking)
+}
+
+exports.removeApprovedPlace = async (req, res) => {
+  const id = req.body.id;
+  const removePlace = await ApprovedPlace.findByIdAndDelete(id)
+  res.json(removePlace)
 }
