@@ -31,5 +31,7 @@ router.post('/remove/approved',isAuth, isAdmin, placesController.removeApprovedP
 router.post('/book',isAuth , placesController.bookPlace)
 router.get('/book',isAuth, isAdmin , placesController.getBookedPlaces)
 
+router.get('/count',isAuth, isAdmin , placesController.getCount)
+
 module.exports = router;
 

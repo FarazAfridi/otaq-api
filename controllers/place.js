@@ -1,6 +1,7 @@
 const UnApprovedPlace = require("../models/unAprrovedPlace");
 const ApprovedPlace = require("../models/approvedPlace");
 const Booking = require("../models/booking");
+const User = require("../models/user");
 
 exports.add = async (req, res) => {
   let images = []
@@ -63,4 +64,12 @@ exports.removeApprovedPlace = async (req, res) => {
   const id = req.body.id;
   const removePlace = await ApprovedPlace.findByIdAndDelete(id)
   res.json(removePlace)
+}
+
+exports.getCount = async (req, res) => {
+  const ordersCount = await Booking.count()
+  const placesCount = await ApprovedPlace.count()
+  const unapprovedPlacesCount = await UnApprovedPlace.count()
+  const usersCount = await User.count()
+  res.json({orders: ordersCount, places: placesCount, unapprovedPlaces: unapprovedPlacesCount, users: usersCount})
 }
