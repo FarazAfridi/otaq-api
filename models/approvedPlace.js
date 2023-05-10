@@ -17,6 +17,10 @@ const approvedPlace = Schema({
   price: {
     type: String,
     required: true
+  },
+  roomType: {
+    type: String,
+    required: true
   }
 })
 
