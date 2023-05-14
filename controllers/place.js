@@ -2,6 +2,16 @@ const UnApprovedPlace = require("../models/unAprrovedPlace");
 const ApprovedPlace = require("../models/approvedPlace");
 const Booking = require("../models/booking");
 const User = require("../models/user");
+require("dotenv").config();
+const nodemailer = require("nodemailer")
+
+const mail = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.USER,
+    pass: process.env.PASS
+  }
+})
 
 exports.add = async (req, res) => {
   let images = [];
@@ -49,7 +59,6 @@ exports.removeUnApprovedPlace = async (req, res) => {
 };
 
 exports.approvedList = async (req, res) => {
-
   const price = req.query.price;
   const roomType = req.query.roomtype;
   let places;
@@ -81,6 +90,23 @@ exports.bookPlace = async (req, res) => {
     lastDate: req.body.lastDate,
   });
   await booking.save();
+  const fullData = await Booking.findById(booking._id).populate('place')
+
+  const mailOptions = {
+    from: process.env.USER,
+    to: 'farazkhan9453@gmail.com',
+    subject: 'Order Placed',
+    text: `Order id: ${booking._id} \nPlace name: ${fullData.place.name} \nFrom: ${booking.startDate} \nTo: ${booking.lastDate} \nRent: ${fullData.place.price}`
+  }
+
+  mail.sendMail(mailOptions, function (error, info) {
+    if(error) {
+      console.log(error)
+    } else {
+      console.log('Email sent ' + info.response)
+    }
+  })
+
   res.json("place booked");
 };
 

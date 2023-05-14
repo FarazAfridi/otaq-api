@@ -1,5 +1,7 @@
 const express = require("express");
+
 const router = express.Router();
+
 const placesController = require("../controllers/place");
 const isAuth = require('../middlewares/is-auth')
 const isVendor = require("../middlewares/is_vendor")
