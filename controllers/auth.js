@@ -8,8 +8,6 @@ exports.signup = (req, res) => {
   const password = req.body.password;
   const name = req.body.name;
 
-  console.log(email, password, name)
-
   bcrypt
     .hash(password, 10)
     .then((hashedPw) => {
@@ -17,15 +15,13 @@ exports.signup = (req, res) => {
         email,
         name,
         password: hashedPw,
-        role: 'User'
+        role: "User",
+        listing: [],
       });
       return user.save();
     })
     .then((result) => {
-      res.status(201).json({
-        message: "User created",
-        userId: result._id,
-      });
+      res.status(201).json(result);
     })
     .catch((err) => console.log(err));
 };
@@ -56,18 +52,49 @@ exports.login = (req, res) => {
         process.env.JWT_SECRET,
         { expiresIn: "1h" }
       );
-      res
-        .status(200)
-        .json({
-          token,
-          userId: loadedUser._id.toString(),
-          userRole: loadedUser.role,
-        });
+      res.status(200).json({
+        token,
+        userId: loadedUser._id.toString(),
+        userRole: loadedUser.role,
+      });
     })
     .catch((err) => console.log(err));
 };
 
 exports.getUsers = async (req, res) => {
-  const users = await User.find({})
-  res.json(users)
-}
+  const users = await User.find({});
+  res.json(users);
+};
+
+exports.getUserData = async (req, res) => {
+  const user = await User.find({ _id: req.user.userId });
+  res.json(user);
+};
+
+exports.updateUserData = async (req, res) => {
+  const user = await User.findById(req.user.userId);
+  user.name = req.body.name;
+  user.email = req.body.email;
+  const password = req.body.password;
+
+  bcrypt.compare(password, user.password, (err, data) => {
+    //if error than throw error
+    if (err) throw err;
+
+    //if both match than you can do anything
+    if (data) {
+
+      user.save();
+      return res.json(user);
+    } else {
+
+      bcrypt.hash(password, 10).then(hash => {
+        console.log(hash)
+        user.password = hash;
+        user.save();
+        return res.json(user);
+      });     
+    }
+  });
+  
+};

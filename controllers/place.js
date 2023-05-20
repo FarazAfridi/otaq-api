@@ -91,6 +91,9 @@ exports.bookPlace = async (req, res) => {
   });
   await booking.save();
   const fullData = await Booking.findById(booking._id).populate('place')
+  const userDoc = await User.findById(req.user.userId);
+    userDoc.listing.push(req.body.placeId)
+    userDoc.save()
 
   const mailOptions = {
     from: process.env.USER,
@@ -132,4 +135,18 @@ exports.getCount = async (req, res) => {
     unapprovedPlaces: unapprovedPlacesCount,
     users: usersCount,
   });
+};
+
+exports.getUserBookedPlaces = async (req, res) => {
+  const userId = req.user.userId;
+
+  const bookings = await Booking.find({}).populate('user place');
+  const userBooking = bookings.filter(booking => booking.user._id.toString() === userId)
+  res.json(userBooking)
+};
+
+exports.getUserListing = async (req, res) => {
+  const userId = req.user.userId;
+  const user = await User.find({ _id: userId }).populate('listing')
+  res.json(user)
 };

@@ -24,6 +24,8 @@ const upload = multer({ storage: storage })
 router.get('/get/unapproved',isAuth, isAdmin, placesController.unApprovedList)
 router.get('/get/approved', placesController.approvedList)
 router.get('/get/approved/:id', placesController.getSinglePlace)
+router.get('/get/booking', isAuth, placesController.getUserBookedPlaces)
+router.get('/get/listing', isAuth, placesController.getUserListing)
 
 router.post('/add', upload.array('images'), isAuth, isVendor, placesController.add)
 router.post('/add/approved',isAuth, isAdmin, placesController.AddToApprovedList)
