@@ -18,7 +18,7 @@ exports.add = async (req, res) => {
   for (let i = 0; i < req.files.length; i++) {
     images.push(req.files[i].filename);
   }
-  const { name, description, price } = req.body;
+  const { name, description, price, roomType } = req.body;
 
   console.log(req.user.userId);
   const unApprovedPlace = await new UnApprovedPlace({
@@ -27,6 +27,7 @@ exports.add = async (req, res) => {
     images,
     description,
     price,
+    roomType: roomType ? roomType : 'Normal'
   });
   const response = await unApprovedPlace.save();
 
@@ -40,18 +41,19 @@ exports.unApprovedList = async (req, res) => {
 
 exports.AddToApprovedList = async (req, res) => {
   const id = req.body.id;
-  const { name, description, images, price, user } =
+  const unapprovedPlace =
     await UnApprovedPlace.findById(id).populate("user");
-  console.log(user);
+  console.log(unapprovedPlace)
+  console.log(unapprovedPlace.roomType)
   const approvedPlace = await new ApprovedPlace({
-    user: user.userId,
-    name,
-    images,
-    description,
-    price,
+    user: unapprovedPlace.user._id,
+    name: unapprovedPlace.name,
+    images: unapprovedPlace.images,
+    description: unapprovedPlace.description,
+    price: unapprovedPlace.price,
+    roomType: unapprovedPlace.roomType
   });
-  const userDoc = await User.findById(user.userId);
-  console.log(approvedPlace._id)
+  const userDoc = await User.findById(unapprovedPlace.user._id);
   userDoc.listing.push(approvedPlace._id);
   userDoc.save();
   const removeUnapprovedPlace = await UnApprovedPlace.findByIdAndDelete(id);
