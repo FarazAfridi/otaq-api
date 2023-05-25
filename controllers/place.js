@@ -3,15 +3,15 @@ const ApprovedPlace = require("../models/approvedPlace");
 const Booking = require("../models/booking");
 const User = require("../models/user");
 require("dotenv").config();
-const nodemailer = require("nodemailer")
+const nodemailer = require("nodemailer");
 
 const mail = nodemailer.createTransport({
-  service: 'gmail',
+  service: "gmail",
   auth: {
     user: process.env.USER,
-    pass: process.env.PASS
-  }
-})
+    pass: process.env.PASS,
+  },
+});
 
 exports.add = async (req, res) => {
   let images = [];
@@ -20,7 +20,9 @@ exports.add = async (req, res) => {
   }
   const { name, description, price } = req.body;
 
+  console.log(req.user.userId);
   const unApprovedPlace = await new UnApprovedPlace({
+    user: req.user.userId,
     name,
     images,
     description,
@@ -38,15 +40,20 @@ exports.unApprovedList = async (req, res) => {
 
 exports.AddToApprovedList = async (req, res) => {
   const id = req.body.id;
-  const { name, description, images, price } = await UnApprovedPlace.findById(
-    id
-  );
+  const { name, description, images, price, user } =
+    await UnApprovedPlace.findById(id).populate("user");
+  console.log(user);
   const approvedPlace = await new ApprovedPlace({
+    user: user.userId,
     name,
     images,
     description,
     price,
   });
+  const userDoc = await User.findById(user.userId);
+  console.log(approvedPlace._id)
+  userDoc.listing.push(approvedPlace._id);
+  userDoc.save();
   const removeUnapprovedPlace = await UnApprovedPlace.findByIdAndDelete(id);
   await approvedPlace.save();
   res.json(removeUnapprovedPlace);
@@ -63,7 +70,7 @@ exports.approvedList = async (req, res) => {
   const roomType = req.query.roomtype;
   let places;
 
-  if(price && roomType) {
+  if (price && roomType) {
     places = await ApprovedPlace.find({ roomType: roomType, price: price });
   } else if (roomType) {
     places = await ApprovedPlace.find({ roomType: roomType });
@@ -90,25 +97,25 @@ exports.bookPlace = async (req, res) => {
     lastDate: req.body.lastDate,
   });
   await booking.save();
-  const fullData = await Booking.findById(booking._id).populate('place')
-  const userDoc = await User.findById(req.user.userId);
-    userDoc.listing.push(req.body.placeId)
-    userDoc.save()
+  const fullData = await Booking.findById(booking._id).populate("place");
+  // const userDoc = await User.findById(req.user.userId);
+  //   userDoc.listing.push(req.body.placeId)
+  //   userDoc.save()
 
   const mailOptions = {
     from: process.env.USER,
-    to: 'farazkhan9453@gmail.com',
-    subject: 'Order Placed',
-    text: `Order id: ${booking._id} \nPlace name: ${fullData.place.name} \nFrom: ${booking.startDate} \nTo: ${booking.lastDate} \nRent: ${fullData.place.price}`
-  }
+    to: "farazkhan9453@gmail.com",
+    subject: "Order Placed",
+    text: `Order id: ${booking._id} \nPlace name: ${fullData.place.name} \nFrom: ${booking.startDate} \nTo: ${booking.lastDate} \nRent: ${fullData.place.price}`,
+  };
 
   mail.sendMail(mailOptions, function (error, info) {
-    if(error) {
-      console.log(error)
+    if (error) {
+      console.log(error);
     } else {
-      console.log('Email sent ' + info.response)
+      console.log("Email sent " + info.response);
     }
-  })
+  });
 
   res.json("place booked");
 };
@@ -140,13 +147,15 @@ exports.getCount = async (req, res) => {
 exports.getUserBookedPlaces = async (req, res) => {
   const userId = req.user.userId;
 
-  const bookings = await Booking.find({}).populate('user place');
-  const userBooking = bookings.filter(booking => booking.user._id.toString() === userId)
-  res.json(userBooking)
+  const bookings = await Booking.find({}).populate("user place");
+  const userBooking = bookings.filter(
+    (booking) => booking.user._id.toString() === userId
+  );
+  res.json(userBooking);
 };
 
 exports.getUserListing = async (req, res) => {
   const userId = req.user.userId;
-  const user = await User.find({ _id: userId }).populate('listing')
-  res.json(user)
+  const user = await User.find({ _id: userId }).populate("listing");
+  res.json(user);
 };
