@@ -27,7 +27,7 @@ exports.add = async (req, res) => {
     images,
     description,
     price,
-    roomType: roomType ? roomType : 'Normal'
+    roomType: roomType ? roomType : "Normal",
   });
   const response = await unApprovedPlace.save();
 
@@ -41,17 +41,17 @@ exports.unApprovedList = async (req, res) => {
 
 exports.AddToApprovedList = async (req, res) => {
   const id = req.body.id;
-  const unapprovedPlace =
-    await UnApprovedPlace.findById(id).populate("user");
-  console.log(unapprovedPlace)
-  console.log(unapprovedPlace.roomType)
+  const unapprovedPlace = await UnApprovedPlace.findById(id).populate("user");
+  console.log(unapprovedPlace);
+  console.log(unapprovedPlace.roomType);
   const approvedPlace = await new ApprovedPlace({
     user: unapprovedPlace.user._id,
     name: unapprovedPlace.name,
     images: unapprovedPlace.images,
     description: unapprovedPlace.description,
     price: unapprovedPlace.price,
-    roomType: unapprovedPlace.roomType
+    roomType: unapprovedPlace.roomType,
+    persons: unapprovedPlace.persons,
   });
   const userDoc = await User.findById(unapprovedPlace.user._id);
   userDoc.listing.push(approvedPlace._id);
@@ -68,16 +68,21 @@ exports.removeUnApprovedPlace = async (req, res) => {
 };
 
 exports.approvedList = async (req, res) => {
-  const price = req.query.price;
+  const city = req.query.city;
+  let upperCasedFirstLetter; 
+  if(city) {
+    upperCasedFirstLetter = city.charAt(0).toUpperCase() + city.slice(1);
+  }
   const roomType = req.query.roomtype;
+  const persons = req.query.persons;
   let places;
 
-  if (price && roomType) {
-    places = await ApprovedPlace.find({ roomType: roomType, price: price });
-  } else if (roomType) {
-    places = await ApprovedPlace.find({ roomType: roomType });
-  } else if (price) {
-    places = await ApprovedPlace.find({ price: price });
+  if (roomType && city && persons) {
+    places = await ApprovedPlace.find({
+      $and: [{ roomType }, { city: upperCasedFirstLetter }, { persons }],
+    });
+  } else if (city) {
+    places = await ApprovedPlace.find({ city: upperCasedFirstLetter });
   } else {
     places = await ApprovedPlace.find({});
   }

@@ -22,6 +22,14 @@ const approvedPlace = Schema({
   roomType: {
     type: String,
     required: true
+  },
+  persons: {
+    type: String,
+    required: true
+  },
+  city: {
+    type: String,
+    required: true
   }
 })
 
