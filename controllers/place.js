@@ -18,7 +18,7 @@ exports.add = async (req, res) => {
   for (let i = 0; i < req.files.length; i++) {
     images.push(req.files[i].filename);
   }
-  const { name, description, price, roomType } = req.body;
+  const { name, description, price, roomType, persons, city } = req.body;
 
   console.log(req.user.userId);
   const unApprovedPlace = await new UnApprovedPlace({
@@ -28,6 +28,8 @@ exports.add = async (req, res) => {
     description,
     price,
     roomType: roomType ? roomType : "Normal",
+    city,
+    persons,
   });
   const response = await unApprovedPlace.save();
 
@@ -42,8 +44,7 @@ exports.unApprovedList = async (req, res) => {
 exports.AddToApprovedList = async (req, res) => {
   const id = req.body.id;
   const unapprovedPlace = await UnApprovedPlace.findById(id).populate("user");
-  console.log(unapprovedPlace);
-  console.log(unapprovedPlace.roomType);
+
   const approvedPlace = await new ApprovedPlace({
     user: unapprovedPlace.user._id,
     name: unapprovedPlace.name,
@@ -52,6 +53,7 @@ exports.AddToApprovedList = async (req, res) => {
     price: unapprovedPlace.price,
     roomType: unapprovedPlace.roomType,
     persons: unapprovedPlace.persons,
+    city: unapprovedPlace.city,
   });
   const userDoc = await User.findById(unapprovedPlace.user._id);
   userDoc.listing.push(approvedPlace._id);
@@ -69,8 +71,8 @@ exports.removeUnApprovedPlace = async (req, res) => {
 
 exports.approvedList = async (req, res) => {
   const city = req.query.city;
-  let upperCasedFirstLetter; 
-  if(city) {
+  let upperCasedFirstLetter;
+  if (city) {
     upperCasedFirstLetter = city.charAt(0).toUpperCase() + city.slice(1);
   }
   const roomType = req.query.roomtype;
@@ -109,14 +111,43 @@ exports.bookPlace = async (req, res) => {
   //   userDoc.listing.push(req.body.placeId)
   //   userDoc.save()
 
+  let date1 = new Date(req.body.startDate);
+  date1.setMinutes(date1.getMinutes() - date1.getTimezoneOffset());
+
+  let date2 = new Date(req.body.lastDate);
+  date2.setMinutes(date2.getMinutes() - date2.getTimezoneOffset());
+
+  const millisecondsPerDay = 24 * 60 * 60 * 1000;
+  const days = (date2 - date1) / millisecondsPerDay;
+
   const mailOptions = {
     from: process.env.USER,
     to: "farazkhan9453@gmail.com",
     subject: "Order Placed",
-    text: `Order id: ${booking._id} \nPlace name: ${fullData.place.name} \nFrom: ${booking.startDate} \nTo: ${booking.lastDate} \nRent: ${fullData.place.price}`,
+    text: `Order id: ${booking._id} \nPlace name: ${fullData.place.name}\nDays Booked: ${days} \nFrom: ${booking.startDate} \nTo: ${booking.lastDate} \nTotal: ${fullData.place.price * days}Rs`,
   };
 
   mail.sendMail(mailOptions, function (error, info) {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log("Email sent " + info.response);
+    }
+  });
+  console.log(req.email, req.user);
+
+  const mailOptions2 = {
+    from: process.env.USER,
+    to: req.email,
+    subject: "Order Placed",
+    text: `Thank you for placing order \nOrder id: ${
+      booking._id
+    } \nPlace name: ${fullData.place.name}\nDays Booked: ${days} \nFrom: ${booking.startDate} \nTo: ${
+      booking.lastDate
+    } \nTotal: ${fullData.place.price * days}Rs`,
+  };
+
+  mail.sendMail(mailOptions2, function (error, info) {
     if (error) {
       console.log(error);
     } else {
