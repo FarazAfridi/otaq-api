@@ -77,24 +77,30 @@ exports.updateUserData = async (req, res) => {
   user.email = req.body.email;
   const password = req.body.password;
 
-  bcrypt.compare(password, user.password, (err, data) => {
-    //if error than throw error
-    if (err) throw err;
-
-    //if both match than you can do anything
-    if (data) {
-
-      user.save();
-      return res.json(user);
-    } else {
-
-      bcrypt.hash(password, 10).then(hash => {
-        console.log(hash)
-        user.password = hash;
+  if(password) {
+    bcrypt.compare(password, user.password, (err, data) => {
+      //if error than throw error
+      if (err) throw err;
+  
+      //if both match than you can do anything
+      if (data) {
+  
         user.save();
         return res.json(user);
-      });     
-    }
-  });
+      } else {
+  
+        bcrypt.hash(password, 10).then(hash => {
+          console.log(hash)
+          user.password = hash;
+          user.save();
+          return res.json(user);
+        });     
+      }
+    });
+  } else {
+    user.save();
+    res.json(user)
+  }
+  
   
 };

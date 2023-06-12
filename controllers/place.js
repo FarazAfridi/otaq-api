@@ -187,7 +187,7 @@ exports.getUserBookedPlaces = async (req, res) => {
 
   const bookings = await Booking.find({}).populate("user place");
   const userBooking = bookings.filter(
-    (booking) => booking.user._id.toString() === userId
+    (booking) => booking.user !== null && booking.user._id.toString() === userId
   );
   res.json(userBooking);
 };
