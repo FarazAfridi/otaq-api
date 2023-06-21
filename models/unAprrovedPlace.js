@@ -2,35 +2,37 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const unAprrovedPlace = Schema({
-  user: { type: Schema.Types.ObjectId, ref: 'User' },
+  user: { type: Schema.Types.ObjectId, ref: "User" },
   name: {
     type: String,
-    required: true
+    required: true,
   },
-  images: {
-    type: [String],
-    required: true
-  },
+  images: [
+    {
+      data: String,
+      contentType: String,
+    },
+  ],
   description: {
     type: String,
-    required: true
+    required: true,
   },
   price: {
     type: String,
-    required: true
+    required: true,
   },
   roomType: {
     type: String,
-    required: true
+    required: true,
   },
   persons: {
     type: String,
-    required: true
+    required: true,
   },
   city: {
     type: String,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
-module.exports = mongoose.model('UnApprovedPlace', unAprrovedPlace);
+module.exports = mongoose.model("UnApprovedPlace", unAprrovedPlace);

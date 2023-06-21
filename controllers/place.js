@@ -4,6 +4,8 @@ const Booking = require("../models/booking");
 const User = require("../models/user");
 require("dotenv").config();
 const nodemailer = require("nodemailer");
+const fs = require("fs");
+const path = require("path")
 
 const mail = nodemailer.createTransport({
   service: "gmail",
@@ -14,13 +16,18 @@ const mail = nodemailer.createTransport({
 });
 
 exports.add = async (req, res) => {
-  let images = [];
-  for (let i = 0; i < req.files.length; i++) {
-    images.push(req.files[i].filename);
-  }
   const { name, description, price, roomType, persons, city } = req.body;
 
-  console.log(req.user.userId);
+  let images = [];
+  for (let i = 0; i < req.files.length; i++) {
+
+   const buffer = fs.readFileSync(
+      req.files[i].path,
+      { encoding: "base64" }
+    );
+    images.push({contentType: req.files[i].mimetype,data: buffer})
+   }
+
   const unApprovedPlace = await new UnApprovedPlace({
     user: req.user.userId,
     name,
@@ -33,12 +40,13 @@ exports.add = async (req, res) => {
   });
   const response = await unApprovedPlace.save();
 
-  res.json(response);
+ res.json(unApprovedPlace)
 };
 
 exports.unApprovedList = async (req, res) => {
-  const unApprovedPlace = await UnApprovedPlace.find({});
-  res.json(unApprovedPlace);
+  const unapprovedPlaces = await UnApprovedPlace.find({});
+  console.log(unapprovedPlaces)
+  res.json(unapprovedPlaces);
 };
 
 exports.AddToApprovedList = async (req, res) => {
@@ -124,7 +132,11 @@ exports.bookPlace = async (req, res) => {
     from: process.env.USER,
     to: "farazkhan9453@gmail.com",
     subject: "Order Placed",
-    text: `Order id: ${booking._id} \nPlace name: ${fullData.place.name}\nDays Booked: ${days} \nFrom: ${booking.startDate} \nTo: ${booking.lastDate} \nTotal: ${fullData.place.price * days}Rs`,
+    text: `Order id: ${booking._id} \nPlace name: ${
+      fullData.place.name
+    }\nDays Booked: ${days} \nFrom: ${booking.startDate} \nTo: ${
+      booking.lastDate
+    } \nTotal: ${fullData.place.price * days}Rs`,
   };
 
   mail.sendMail(mailOptions, function (error, info) {
@@ -142,9 +154,9 @@ exports.bookPlace = async (req, res) => {
     subject: "Order Placed",
     text: `Thank you for placing order \nOrder id: ${
       booking._id
-    } \nPlace name: ${fullData.place.name}\nDays Booked: ${days} \nFrom: ${booking.startDate} \nTo: ${
-      booking.lastDate
-    } \nTotal: ${fullData.place.price * days}Rs`,
+    } \nPlace name: ${fullData.place.name}\nDays Booked: ${days} \nFrom: ${
+      booking.startDate
+    } \nTo: ${booking.lastDate} \nTotal: ${fullData.place.price * days}Rs`,
   };
 
   mail.sendMail(mailOptions2, function (error, info) {

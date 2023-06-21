@@ -7,10 +7,12 @@ const approvedPlace = Schema({
     type: String,
     required: true
   },
-  images: {
-    type: [String],
-    required: true
-  },
+  images: [
+    {
+      data: String,
+      contentType: String,
+    },
+  ],
   description: {
     type: String,
     required: true
