@@ -51,6 +51,8 @@ exports.unApprovedList = async (req, res) => {
 
 exports.AddToApprovedList = async (req, res) => {
   const id = req.body.id;
+
+  if(id) {
   const unapprovedPlace = await UnApprovedPlace.findById(id).populate("user");
 
   const approvedPlace = await new ApprovedPlace({
@@ -69,6 +71,34 @@ exports.AddToApprovedList = async (req, res) => {
   const removeUnapprovedPlace = await UnApprovedPlace.findByIdAndDelete(id);
   await approvedPlace.save();
   res.json(removeUnapprovedPlace);
+} else {
+  const {name, price, description, city, persons, roomType} = req.body
+
+  let images = [];
+  for (let i = 0; i < req.files.length; i++) {
+
+   const buffer = fs.readFileSync(
+      req.files[i].path,
+      { encoding: "base64" }
+    );
+    images.push({contentType: req.files[i].mimetype,data: buffer})
+   }
+
+  const approvedPlace = await new ApprovedPlace({
+    user: req.user.userId,
+    name: name,
+    images: images,
+    description: description,
+    price: price,
+    roomType: roomType,
+    persons: persons,
+    city: city,
+  });
+  
+  await approvedPlace.save()
+  res.json(approvedPlace)
+}
+ 
 };
 
 exports.removeUnApprovedPlace = async (req, res) => {
@@ -115,9 +145,6 @@ exports.bookPlace = async (req, res) => {
   });
   await booking.save();
   const fullData = await Booking.findById(booking._id).populate("place");
-  // const userDoc = await User.findById(req.user.userId);
-  //   userDoc.listing.push(req.body.placeId)
-  //   userDoc.save()
 
   let date1 = new Date(req.body.startDate);
   date1.setMinutes(date1.getMinutes() - date1.getTimezoneOffset());

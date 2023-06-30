@@ -28,7 +28,7 @@ router.get('/get/booking', isAuth, placesController.getUserBookedPlaces)
 router.get('/get/listing', isAuth, placesController.getUserListing)
 
 router.post('/add', upload.array('images'), isAuth, isVendor, placesController.add)
-router.post('/add/approved',isAuth, isAdmin, placesController.AddToApprovedList)
+router.post('/add/approved',upload.array('images'),isAuth, isAdmin, placesController.AddToApprovedList)
 router.post('/remove/unapproved',isAuth, isAdmin, placesController.removeUnApprovedPlace)
 router.post('/remove/approved',isAuth, isAdmin, placesController.removeApprovedPlace)
 
