@@ -5,7 +5,8 @@ const User = require("../models/user");
 require("dotenv").config();
 const nodemailer = require("nodemailer");
 const fs = require("fs");
-const path = require("path")
+const path = require("path");
+const approvedPlace = require("../models/approvedPlace");
 
 const mail = nodemailer.createTransport({
   service: "gmail",
@@ -20,13 +21,9 @@ exports.add = async (req, res) => {
 
   let images = [];
   for (let i = 0; i < req.files.length; i++) {
-
-   const buffer = fs.readFileSync(
-      req.files[i].path,
-      { encoding: "base64" }
-    );
-    images.push({contentType: req.files[i].mimetype,data: buffer})
-   }
+    const buffer = fs.readFileSync(req.files[i].path, { encoding: "base64" });
+    images.push({ contentType: req.files[i].mimetype, data: buffer });
+  }
 
   const unApprovedPlace = await new UnApprovedPlace({
     user: req.user.userId,
@@ -40,65 +37,118 @@ exports.add = async (req, res) => {
   });
   const response = await unApprovedPlace.save();
 
- res.json(unApprovedPlace)
+  res.json(unApprovedPlace);
 };
 
 exports.unApprovedList = async (req, res) => {
   const unapprovedPlaces = await UnApprovedPlace.find({});
-  console.log(unapprovedPlaces)
+  console.log(unapprovedPlaces);
   res.json(unapprovedPlaces);
 };
 
 exports.AddToApprovedList = async (req, res) => {
   const id = req.body.id;
 
-  if(id) {
-  const unapprovedPlace = await UnApprovedPlace.findById(id).populate("user");
+  if (id) {
+    const unapprovedPlace = await UnApprovedPlace.findById(id).populate("user");
 
-  const approvedPlace = await new ApprovedPlace({
-    user: unapprovedPlace.user._id,
-    name: unapprovedPlace.name,
-    images: unapprovedPlace.images,
-    description: unapprovedPlace.description,
-    price: unapprovedPlace.price,
-    roomType: unapprovedPlace.roomType,
-    persons: unapprovedPlace.persons,
-    city: unapprovedPlace.city,
-  });
-  const userDoc = await User.findById(unapprovedPlace.user._id);
-  userDoc.listing.push(approvedPlace._id);
-  userDoc.save();
-  const removeUnapprovedPlace = await UnApprovedPlace.findByIdAndDelete(id);
-  await approvedPlace.save();
-  res.json(removeUnapprovedPlace);
-} else {
-  const {name, price, description, city, persons, roomType} = req.body
+    const approvedPlace = await new ApprovedPlace({
+      user: unapprovedPlace.user._id,
+      name: unapprovedPlace.name,
+      images: unapprovedPlace.images,
+      description: unapprovedPlace.description,
+      price: unapprovedPlace.price,
+      roomType: unapprovedPlace.roomType,
+      persons: unapprovedPlace.persons,
+      city: unapprovedPlace.city,
+    });
+    const userDoc = await User.findById(unapprovedPlace.user._id);
+    userDoc.listing.push(approvedPlace._id);
+    userDoc.save();
+    const removeUnapprovedPlace = await UnApprovedPlace.findByIdAndDelete(id);
+    await approvedPlace.save();
+    res.json(removeUnapprovedPlace);
+  } else {
 
-  let images = [];
-  for (let i = 0; i < req.files.length; i++) {
+    const {
+      name,
+      room1Name,
+      room1Description,
+      room1Price,
+      room1Capacity,
+      description,
+      city,
+      room2Name,
+      room2Description,
+      room2Price,
+      room2Capacity,
+      room3Name,
+      room3Description,
+      room3Price,
+      room3Capacity,
+    } = req.body;
 
-   const buffer = fs.readFileSync(
-      req.files[i].path,
-      { encoding: "base64" }
-    );
-    images.push({contentType: req.files[i].mimetype,data: buffer})
-   }
+    let room1 = [];
+    let room2 = [];
+    let room3 = [];
 
-  const approvedPlace = await new ApprovedPlace({
-    user: req.user.userId,
-    name: name,
-    images: images,
-    description: description,
-    price: price,
-    roomType: roomType,
-    persons: persons,
-    city: city,
-  });
-  
-  await approvedPlace.save()
-  res.json(approvedPlace)
-}
- 
+    req.files.room1.forEach((item) => {
+      const buffer = fs.readFileSync(item.path, { encoding: "base64" });
+      room1.push({ contentType: item.mimetype, data: buffer });
+
+    });
+
+    req.files.room2.forEach((item) => {
+      const buffer = fs.readFileSync(item.path, { encoding: "base64" });
+      room2.push({ contentType: item.mimetype, data: buffer });
+
+    });
+
+    req.files.room3.forEach((item) => {
+      const buffer = fs.readFileSync(item.path, { encoding: "base64" });
+      room3.push({ contentType: item.mimetype, data: buffer });
+
+    });
+
+
+    const approvedPlace = await new ApprovedPlace({
+      user: req.user.userId,
+      name: name,
+      description: description,
+      city: city,
+      totalCapacity: Number(room1Capacity) + Number(room2Capacity) + Number(room3Capacity),
+      roomOne:
+        {
+          name: room1Name,
+          description: room1Description,
+          price: room1Price,
+          images: room1,
+          capacity: room1Capacity,
+        },
+    
+      roomTwo:
+        {
+          name: room2Name,
+          description: room2Description,
+          price: room2Price,
+          images: room2,
+          capacity: room2Capacity,
+        },
+    
+      roomThree:
+        {
+          name: room3Name,
+          description: room3Description,
+          price: room3Price,
+          images: room3,
+          capacity: room3Capacity,
+        },
+    
+    });
+    console.log(approvedPlace)
+    await approvedPlace.save();
+    res.json(approvedPlace);
+  }
 };
 
 exports.removeUnApprovedPlace = async (req, res) => {
@@ -137,13 +187,20 @@ exports.getSinglePlace = async (req, res) => {
 };
 
 exports.bookPlace = async (req, res) => {
+
   const booking = await new Booking({
     user: req.user.userId,
     place: req.body.placeId,
     startDate: req.body.startDate,
     lastDate: req.body.lastDate,
+    roomType: req.body.room
   });
   await booking.save();
+
+  const placeToUpdateBooking = await ApprovedPlace.findById(req.body.placeId);
+  placeToUpdateBooking.bookings.push(booking._id);
+  placeToUpdateBooking.save();
+
   const fullData = await Booking.findById(booking._id).populate("place");
 
   let date1 = new Date(req.body.startDate);

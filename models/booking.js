@@ -11,6 +11,10 @@ const booking = Schema({
   lastDate: {
     type: String,
     required: true
+  },
+  roomType: {
+    type: String,
+    required: true
   }
 })
 

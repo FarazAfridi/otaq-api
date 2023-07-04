@@ -2,37 +2,46 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const approvedPlace = Schema({
-  user: { type: Schema.Types.ObjectId, ref: 'User' },
+  user: { type: Schema.Types.ObjectId, ref: "User" },
   name: {
     type: String,
-    required: true
+    required: true,
   },
-  images: [
-    {
-      data: String,
-      contentType: String,
-    },
-  ],
+  roomOne: {
+    name: String,
+    description: String,
+    images: [{ data: String, contentType: String }],
+    price: String,
+    capacity: String,
+  },
+
+  roomTwo: {
+    name: String,
+    description: String,
+    images: [{ data: String, contentType: String }],
+    price: String,
+    capacity: String,
+  },
+  roomThree: {
+    name: String,
+    description: String,
+    images: [{ data: String, contentType: String }],
+    price: String,
+    capacity: String,
+  },
   description: {
     type: String,
-    required: true
-  },
-  price: {
-    type: String,
-    required: true
-  },
-  roomType: {
-    type: String,
-    required: true
-  },
-  persons: {
-    type: String,
-    required: true
+    required: true,
   },
   city: {
     type: String,
-    required: true
+    required: true,
+  },
+  bookings: [{ type: Schema.Types.ObjectId, ref: 'Booking' }],
+  totalCapacity: {
+    type: String,
+    required: true,
   }
-})
+});
 
-module.exports = mongoose.model('ApprovedPlace', approvedPlace);
+module.exports = mongoose.model("ApprovedPlace", approvedPlace);
