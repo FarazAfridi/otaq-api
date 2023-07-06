@@ -69,7 +69,6 @@ exports.AddToApprovedList = async (req, res) => {
     await approvedPlace.save();
     res.json(removeUnapprovedPlace);
   } else {
-
     const {
       name,
       room1Name,
@@ -95,57 +94,50 @@ exports.AddToApprovedList = async (req, res) => {
     req.files.room1.forEach((item) => {
       const buffer = fs.readFileSync(item.path, { encoding: "base64" });
       room1.push({ contentType: item.mimetype, data: buffer });
-
     });
 
     req.files.room2.forEach((item) => {
       const buffer = fs.readFileSync(item.path, { encoding: "base64" });
       room2.push({ contentType: item.mimetype, data: buffer });
-
     });
 
     req.files.room3.forEach((item) => {
       const buffer = fs.readFileSync(item.path, { encoding: "base64" });
       room3.push({ contentType: item.mimetype, data: buffer });
-
     });
-
 
     const approvedPlace = await new ApprovedPlace({
       user: req.user.userId,
       name: name,
       description: description,
       city: city,
-      totalCapacity: Number(room1Capacity) + Number(room2Capacity) + Number(room3Capacity),
-      roomOne:
-        {
-          name: room1Name,
-          description: room1Description,
-          price: room1Price,
-          images: room1,
-          capacity: room1Capacity,
-        },
-    
-      roomTwo:
-        {
-          name: room2Name,
-          description: room2Description,
-          price: room2Price,
-          images: room2,
-          capacity: room2Capacity,
-        },
-    
-      roomThree:
-        {
-          name: room3Name,
-          description: room3Description,
-          price: room3Price,
-          images: room3,
-          capacity: room3Capacity,
-        },
-    
+      totalCapacity:
+        Number(room1Capacity) + Number(room2Capacity) + Number(room3Capacity),
+      roomOne: {
+        name: room1Name,
+        description: room1Description,
+        price: room1Price,
+        images: room1,
+        capacity: room1Capacity,
+      },
+
+      roomTwo: {
+        name: room2Name,
+        description: room2Description,
+        price: room2Price,
+        images: room2,
+        capacity: room2Capacity,
+      },
+
+      roomThree: {
+        name: room3Name,
+        description: room3Description,
+        price: room3Price,
+        images: room3,
+        capacity: room3Capacity,
+      },
     });
-    console.log(approvedPlace)
+    console.log(approvedPlace);
     await approvedPlace.save();
     res.json(approvedPlace);
   }
@@ -187,71 +179,108 @@ exports.getSinglePlace = async (req, res) => {
 };
 
 exports.bookPlace = async (req, res) => {
-
   const booking = await new Booking({
     user: req.user.userId,
     place: req.body.placeId,
     startDate: req.body.startDate,
     lastDate: req.body.lastDate,
-    roomType: req.body.room
+    roomType: req.body.room,
   });
-  await booking.save();
 
-  const placeToUpdateBooking = await ApprovedPlace.findById(req.body.placeId);
-  placeToUpdateBooking.bookings.push(booking._id);
-  placeToUpdateBooking.save();
+  const placeToUpdateBooking = await ApprovedPlace.findById(
+    req.body.placeId
+  ).populate("bookings");
+  // placeToUpdateBooking.bookings.push(booking._id);
+  // placeToUpdateBooking.save();
+  let noError = false;
+  const date1 = new Date(booking.startDate).getTime();
 
-  const fullData = await Booking.findById(booking._id).populate("place");
+  if (placeToUpdateBooking.bookings.length > 0) {
+    const bookingsByRoomType = placeToUpdateBooking.bookings.filter(
+      (book) => booking.roomType === book.roomType
+    );
 
-  let date1 = new Date(req.body.startDate);
-  date1.setMinutes(date1.getMinutes() - date1.getTimezoneOffset());
-
-  let date2 = new Date(req.body.lastDate);
-  date2.setMinutes(date2.getMinutes() - date2.getTimezoneOffset());
-
-  const millisecondsPerDay = 24 * 60 * 60 * 1000;
-  const days = (date2 - date1) / millisecondsPerDay;
-
-  const mailOptions = {
-    from: process.env.USER,
-    to: "farazkhan9453@gmail.com",
-    subject: "Order Placed",
-    text: `Order id: ${booking._id} \nPlace name: ${
-      fullData.place.name
-    }\nDays Booked: ${days} \nFrom: ${booking.startDate} \nTo: ${
-      booking.lastDate
-    } \nTotal: ${fullData.place.price * days}Rs`,
-  };
-
-  mail.sendMail(mailOptions, function (error, info) {
-    if (error) {
-      console.log(error);
+    if (!bookingsByRoomType.length > 0) {
+      placeToUpdateBooking.bookings.push(booking._id);
+      noError = true;
     } else {
-      console.log("Email sent " + info.response);
+      const result = bookingsByRoomType.every((book) => {
+        const date2 = new Date(book.lastDate).getTime();
+        const result = date1 > date2;
+        return result;
+      });
+      if (result) {
+        placeToUpdateBooking.bookings.push(booking._id);
+        noError = true;
+      }
     }
-  });
-  console.log(req.email, req.user);
+  } else {
+    placeToUpdateBooking.bookings.push(booking._id);
+    noError = true;
+  }
 
-  const mailOptions2 = {
-    from: process.env.USER,
-    to: req.email,
-    subject: "Order Placed",
-    text: `Thank you for placing order \nOrder id: ${
-      booking._id
-    } \nPlace name: ${fullData.place.name}\nDays Booked: ${days} \nFrom: ${
-      booking.startDate
-    } \nTo: ${booking.lastDate} \nTotal: ${fullData.place.price * days}Rs`,
-  };
+  if (noError) {
+    await booking.save();
+    await placeToUpdateBooking.save();
 
-  mail.sendMail(mailOptions2, function (error, info) {
-    if (error) {
-      console.log(error);
-    } else {
-      console.log("Email sent " + info.response);
-    }
-  });
+      const fullData = await Booking.findById(booking._id).populate("place");
 
-  res.json("place booked");
+    let date1 = new Date(req.body.startDate);
+    date1.setMinutes(date1.getMinutes() - date1.getTimezoneOffset());
+
+    let date2 = new Date(req.body.lastDate);
+    date2.setMinutes(date2.getMinutes() - date2.getTimezoneOffset());
+
+    const millisecondsPerDay = 24 * 60 * 60 * 1000;
+    const days = (date2 - date1) / millisecondsPerDay;
+
+    const roomRent = [placeToUpdateBooking.roomOne, placeToUpdateBooking.roomTwo, placeToUpdateBooking.roomThree].filter(room => room.name === booking.roomType)[0].price
+
+    console.log(roomRent)
+
+      const mailOptions = {
+      from: process.env.USER,
+      to: "farazkhan9453@gmail.com",
+      subject: "Order Placed",
+      text: `Order id: ${booking._id} \nPlace name: ${
+        fullData.place.name
+      }\nRoom Type: ${booking.roomType}\nDays Booked: ${days} \nFrom: ${booking.startDate} \nTo: ${
+        booking.lastDate
+      } \nTotal: ${roomRent * days}Rs`,
+    };
+
+    mail.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log("Email sent " + info.response);
+      }
+    });
+    console.log(req.email, req.user);
+
+    const mailOptions2 = {
+      from: process.env.USER,
+      to: req.email,
+      subject: "Order Placed",
+      text: `Thank you for placing order \nOrder id: ${
+        booking._id
+      } \nPlace name: ${fullData.place.name}\nRoom Type: ${booking.roomType}\nDays Booked: ${days} \nFrom: ${
+        booking.startDate
+      } \nTo: ${booking.lastDate} \nTotal: ${roomRent * days}Rs`,
+    };
+
+    mail.sendMail(mailOptions2, function (error, info) {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log("Email sent " + info.response);
+      }
+    });
+
+    res.json("Place booked");
+  } else {
+    res.json("Sorry! The room is already booked");
+  }
 };
 
 exports.getBookedPlaces = async (req, res) => {
