@@ -7,25 +7,29 @@ const unAprrovedPlace = Schema({
     type: String,
     required: true,
   },
-  images: [
-    {
-      data: String,
-      contentType: String,
-    },
-  ],
+  roomOne: {
+    name: String,
+    description: String,
+    images: [{ data: String, contentType: String }],
+    price: String,
+    capacity: String,
+  },
+
+  roomTwo: {
+    name: String,
+    description: String,
+    images: [{ data: String, contentType: String }],
+    price: String,
+    capacity: String,
+  },
+  roomThree: {
+    name: String,
+    description: String,
+    images: [{ data: String, contentType: String }],
+    price: String,
+    capacity: String,
+  },
   description: {
-    type: String,
-    required: true,
-  },
-  price: {
-    type: String,
-    required: true,
-  },
-  roomType: {
-    type: String,
-    required: true,
-  },
-  persons: {
     type: String,
     required: true,
   },
@@ -33,6 +37,11 @@ const unAprrovedPlace = Schema({
     type: String,
     required: true,
   },
+  bookings: [{ type: Schema.Types.ObjectId, ref: 'Booking' }],
+  totalCapacity: {
+    type: String,
+    required: true,
+  }
 });
 
 module.exports = mongoose.model("UnApprovedPlace", unAprrovedPlace);

@@ -35,7 +35,7 @@ exports.add = async (req, res) => {
     city,
     persons,
   });
-  const response = await unApprovedPlace.save();
+  await unApprovedPlace.save();
 
   res.json(unApprovedPlace);
 };
@@ -137,8 +137,12 @@ exports.AddToApprovedList = async (req, res) => {
         capacity: room3Capacity,
       },
     });
-    console.log(approvedPlace);
     await approvedPlace.save();
+
+    const userDoc = await User.findById(req.user.userId);
+    userDoc.listing.push(approvedPlace._id);
+    await userDoc.save();
+
     res.json(approvedPlace);
   }
 };
@@ -190,8 +194,7 @@ exports.bookPlace = async (req, res) => {
   const placeToUpdateBooking = await ApprovedPlace.findById(
     req.body.placeId
   ).populate("bookings");
-  // placeToUpdateBooking.bookings.push(booking._id);
-  // placeToUpdateBooking.save();
+
   let noError = false;
   const date1 = new Date(booking.startDate).getTime();
 
@@ -223,7 +226,7 @@ exports.bookPlace = async (req, res) => {
     await booking.save();
     await placeToUpdateBooking.save();
 
-      const fullData = await Booking.findById(booking._id).populate("place");
+    const fullData = await Booking.findById(booking._id).populate("place");
 
     let date1 = new Date(req.body.startDate);
     date1.setMinutes(date1.getMinutes() - date1.getTimezoneOffset());
@@ -256,7 +259,6 @@ exports.bookPlace = async (req, res) => {
         console.log("Email sent " + info.response);
       }
     });
-    console.log(req.email, req.user);
 
     const mailOptions2 = {
       from: process.env.USER,
