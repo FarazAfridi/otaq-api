@@ -15,6 +15,10 @@ const booking = Schema({
   roomType: {
     type: String,
     required: true
+  },
+  status: {
+    type: String,
+    required: true
   }
 })
 

@@ -181,6 +181,89 @@ exports.getSinglePlace = async (req, res) => {
   const place = await ApprovedPlace.findById(id);
   res.json(place);
 };
+exports.approveOrder = async (req, res) => {
+
+  if (!req.body.id) res.json("no id is found");
+  const fullData = await Booking.findById(req.body.id).populate("place user");
+  fullData.status = "Approved";
+  await fullData.save()
+
+  const placeToUpdateBooking = await ApprovedPlace.findById(
+    fullData.place._id
+  );
+  placeToUpdateBooking.bookings.push(fullData._id);
+  await placeToUpdateBooking.save();
+  console.log(placeToUpdateBooking)
+
+  let date1 = new Date(fullData.startDate);
+  date1.setMinutes(date1.getMinutes() - date1.getTimezoneOffset());
+
+  let date2 = new Date(fullData.lastDate);
+  date2.setMinutes(date2.getMinutes() - date2.getTimezoneOffset());
+
+  const millisecondsPerDay = 24 * 60 * 60 * 1000;
+  const days = (date2 - date1) / millisecondsPerDay;
+
+  const roomRent = [
+    fullData.place.roomOne,
+    fullData.place.roomTwo,
+    fullData.place.roomThree,
+  ].filter((room) => room.name === fullData.roomType)[0].price;
+
+  const mailOptions = {
+    from: process.env.USER,
+    to: "farazkhan9453@gmail.com",
+    subject: "Order Placed",
+    text: `Order id: ${fullData._id} \nPlace name: ${
+      fullData.place.name
+    }\nRoom Type: ${fullData.roomType}\nDays Booked: ${days} \nFrom: ${
+      fullData.startDate
+    } \nTo: ${fullData.lastDate} \nTotal: ${roomRent * days}Rs`,
+  };
+
+  mail.sendMail(mailOptions, function (error, info) {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log("Email sent " + info.response);
+    }
+  });
+
+  const mailOptions2 = {
+    from: process.env.USER,
+    to: fullData.user.email,
+    subject: "Order Placed",
+    text: `Thank you for placing order \nOrder id: ${
+      fullData._id
+    } \nPlace name: ${fullData.place.name}\nRoom Type: ${
+      fullData.roomType
+    }\nDays Booked: ${days} \nFrom: ${fullData.startDate} \nTo: ${
+      fullData.lastDate
+    } \nTotal: ${roomRent * days}Rs`,
+  };
+
+  mail.sendMail(mailOptions2, function (error, info) {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log("Email sent " + info.response);
+    }
+  });
+
+  res.json("Order has been approved")
+};
+
+exports.rejectOrder = async (req, res) => {
+  const id = req.body.id;
+  if (!id) res.json("no id found");
+
+  const booking = await Booking.findById(id);
+  booking.status = "Rejected";
+  await booking.save();
+
+  res.json("Order has been rejected")
+
+}
 
 exports.bookPlace = async (req, res) => {
   const booking = await new Booking({
@@ -189,6 +272,7 @@ exports.bookPlace = async (req, res) => {
     startDate: req.body.startDate,
     lastDate: req.body.lastDate,
     roomType: req.body.room,
+    status: "Pending",
   });
 
   const placeToUpdateBooking = await ApprovedPlace.findById(
@@ -218,66 +302,11 @@ exports.bookPlace = async (req, res) => {
       }
     }
   } else {
-    placeToUpdateBooking.bookings.push(booking._id);
     noError = true;
   }
 
   if (noError) {
     await booking.save();
-    await placeToUpdateBooking.save();
-
-    const fullData = await Booking.findById(booking._id).populate("place");
-
-    let date1 = new Date(req.body.startDate);
-    date1.setMinutes(date1.getMinutes() - date1.getTimezoneOffset());
-
-    let date2 = new Date(req.body.lastDate);
-    date2.setMinutes(date2.getMinutes() - date2.getTimezoneOffset());
-
-    const millisecondsPerDay = 24 * 60 * 60 * 1000;
-    const days = (date2 - date1) / millisecondsPerDay;
-
-    const roomRent = [placeToUpdateBooking.roomOne, placeToUpdateBooking.roomTwo, placeToUpdateBooking.roomThree].filter(room => room.name === booking.roomType)[0].price
-
-    console.log(roomRent)
-
-      const mailOptions = {
-      from: process.env.USER,
-      to: "farazkhan9453@gmail.com",
-      subject: "Order Placed",
-      text: `Order id: ${booking._id} \nPlace name: ${
-        fullData.place.name
-      }\nRoom Type: ${booking.roomType}\nDays Booked: ${days} \nFrom: ${booking.startDate} \nTo: ${
-        booking.lastDate
-      } \nTotal: ${roomRent * days}Rs`,
-    };
-
-    mail.sendMail(mailOptions, function (error, info) {
-      if (error) {
-        console.log(error);
-      } else {
-        console.log("Email sent " + info.response);
-      }
-    });
-
-    const mailOptions2 = {
-      from: process.env.USER,
-      to: req.email,
-      subject: "Order Placed",
-      text: `Thank you for placing order \nOrder id: ${
-        booking._id
-      } \nPlace name: ${fullData.place.name}\nRoom Type: ${booking.roomType}\nDays Booked: ${days} \nFrom: ${
-        booking.startDate
-      } \nTo: ${booking.lastDate} \nTotal: ${roomRent * days}Rs`,
-    };
-
-    mail.sendMail(mailOptions2, function (error, info) {
-      if (error) {
-        console.log(error);
-      } else {
-        console.log("Email sent " + info.response);
-      }
-    });
 
     res.json("Place booked");
   } else {

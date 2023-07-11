@@ -58,6 +58,8 @@ router.post(
 );
 
 router.post("/book", isAuth, placesController.bookPlace);
+router.post("/approve/order", isAuth,isAdmin, placesController.approveOrder);
+router.post("/reject/order", isAuth,isAdmin, placesController.rejectOrder);
 router.get("/book", isAuth, isAdmin, placesController.getBookedPlaces);
 
 router.get("/count", isAuth, isAdmin, placesController.getCount);
