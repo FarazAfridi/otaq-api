@@ -32,7 +32,7 @@ router.get("/get/listing", isAuth, placesController.getUserListing);
 
 router.post(
   "/add",
-  upload.array("images"),
+  upload.fields([{ name: "room1" }, { name: "room2" }, { name: "room3" }]),
   isAuth,
   isVendor,
   placesController.add

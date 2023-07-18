@@ -17,23 +17,73 @@ const mail = nodemailer.createTransport({
 });
 
 exports.add = async (req, res) => {
-  const { name, description, price, roomType, persons, city } = req.body;
+  const {
+    name,
+    room1Name,
+    room1Description,
+    room1Price,
+    room1Capacity,
+    description,
+    city,
+    room2Name,
+    room2Description,
+    room2Price,
+    room2Capacity,
+    room3Name,
+    room3Description,
+    room3Price,
+    room3Capacity,
+  } = req.body;
 
-  let images = [];
-  for (let i = 0; i < req.files.length; i++) {
-    const buffer = fs.readFileSync(req.files[i].path, { encoding: "base64" });
-    images.push({ contentType: req.files[i].mimetype, data: buffer });
-  }
+  let room1 = [];
+  let room2 = [];
+  let room3 = [];
+
+  req.files.room1.forEach((item) => {
+    const buffer = fs.readFileSync(item.path, { encoding: "base64" });
+    room1.push({ contentType: item.mimetype, data: buffer });
+  });
+
+  req.files.room2.forEach((item) => {
+    const buffer = fs.readFileSync(item.path, { encoding: "base64" });
+    room2.push({ contentType: item.mimetype, data: buffer });
+  });
+
+  req.files.room3.forEach((item) => {
+    const buffer = fs.readFileSync(item.path, { encoding: "base64" });
+    room3.push({ contentType: item.mimetype, data: buffer });
+  });
 
   const unApprovedPlace = await new UnApprovedPlace({
     user: req.user.userId,
-    name,
-    images,
-    description,
-    price,
-    roomType: roomType ? roomType : "Normal",
-    city,
-    persons,
+    name: name,
+    description: description,
+    city: city,
+    totalCapacity:
+      Number(room1Capacity) + Number(room2Capacity) + Number(room3Capacity),
+    roomOne: {
+      name: room1Name,
+      description: room1Description,
+      price: room1Price,
+      images: room1,
+      capacity: room1Capacity,
+    },
+
+    roomTwo: {
+      name: room2Name,
+      description: room2Description,
+      price: room2Price,
+      images: room2,
+      capacity: room2Capacity,
+    },
+
+    roomThree: {
+      name: room3Name,
+      description: room3Description,
+      price: room3Price,
+      images: room3,
+      capacity: room3Capacity,
+    },
   });
   await unApprovedPlace.save();
 
@@ -55,13 +105,35 @@ exports.AddToApprovedList = async (req, res) => {
     const approvedPlace = await new ApprovedPlace({
       user: unapprovedPlace.user._id,
       name: unapprovedPlace.name,
-      images: unapprovedPlace.images,
       description: unapprovedPlace.description,
-      price: unapprovedPlace.price,
-      roomType: unapprovedPlace.roomType,
-      persons: unapprovedPlace.persons,
       city: unapprovedPlace.city,
+      totalCapacity:
+        Number(unapprovedPlace.roomOne.capacity) + Number(unapprovedPlace.roomTwo.capacity) + Number(unapprovedPlace.roomThree.capacity),
+      roomOne: {
+        name: unapprovedPlace.roomOne.name,
+        description: unapprovedPlace.roomOne.description,
+        price: unapprovedPlace.roomOne.price,
+        images: unapprovedPlace.roomOne.images,
+        capacity: unapprovedPlace.roomOne.capacity,
+      },
+
+      roomTwo: {
+        name: unapprovedPlace.roomTwo.name,
+        description: unapprovedPlace.roomTwo.description,
+        price: unapprovedPlace.roomTwo.price,
+        images: unapprovedPlace.roomTwo.images,
+        capacity: unapprovedPlace.roomTwo.capacity,
+      },
+
+      roomThree: {
+        name: unapprovedPlace.roomThree.name,
+        description: unapprovedPlace.roomThree.description,
+        price: unapprovedPlace.roomThree.price,
+        images: unapprovedPlace.roomThree.images,
+        capacity: unapprovedPlace.roomThree.capacity,
+      },
     });
+
     const userDoc = await User.findById(unapprovedPlace.user._id);
     userDoc.listing.push(approvedPlace._id);
     userDoc.save();
@@ -149,6 +221,7 @@ exports.AddToApprovedList = async (req, res) => {
 
 exports.removeUnApprovedPlace = async (req, res) => {
   const id = req.body.id;
+  if(!id) res.json("no id found")
   const removePlace = await UnApprovedPlace.findByIdAndDelete(id);
   res.json(removePlace);
 };
@@ -182,18 +255,15 @@ exports.getSinglePlace = async (req, res) => {
   res.json(place);
 };
 exports.approveOrder = async (req, res) => {
-
   if (!req.body.id) res.json("no id is found");
   const fullData = await Booking.findById(req.body.id).populate("place user");
   fullData.status = "Approved";
-  await fullData.save()
+  await fullData.save();
 
-  const placeToUpdateBooking = await ApprovedPlace.findById(
-    fullData.place._id
-  );
+  const placeToUpdateBooking = await ApprovedPlace.findById(fullData.place._id);
   placeToUpdateBooking.bookings.push(fullData._id);
   await placeToUpdateBooking.save();
-  console.log(placeToUpdateBooking)
+  console.log(placeToUpdateBooking);
 
   let date1 = new Date(fullData.startDate);
   date1.setMinutes(date1.getMinutes() - date1.getTimezoneOffset());
@@ -250,7 +320,7 @@ exports.approveOrder = async (req, res) => {
     }
   });
 
-  res.json("Order has been approved")
+  res.json("Order has been approved");
 };
 
 exports.rejectOrder = async (req, res) => {
@@ -261,9 +331,8 @@ exports.rejectOrder = async (req, res) => {
   booking.status = "Rejected";
   await booking.save();
 
-  res.json("Order has been rejected")
-
-}
+  res.json("Order has been rejected");
+};
 
 exports.bookPlace = async (req, res) => {
   const booking = await new Booking({
