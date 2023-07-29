@@ -108,7 +108,9 @@ exports.AddToApprovedList = async (req, res) => {
       description: unapprovedPlace.description,
       city: unapprovedPlace.city,
       totalCapacity:
-        Number(unapprovedPlace.roomOne.capacity) + Number(unapprovedPlace.roomTwo.capacity) + Number(unapprovedPlace.roomThree.capacity),
+        Number(unapprovedPlace.roomOne.capacity) +
+        Number(unapprovedPlace.roomTwo.capacity) +
+        Number(unapprovedPlace.roomThree.capacity),
       roomOne: {
         name: unapprovedPlace.roomOne.name,
         description: unapprovedPlace.roomOne.description,
@@ -221,7 +223,7 @@ exports.AddToApprovedList = async (req, res) => {
 
 exports.removeUnApprovedPlace = async (req, res) => {
   const id = req.body.id;
-  if(!id) res.json("no id found")
+  if (!id) res.json("no id found");
   const removePlace = await UnApprovedPlace.findByIdAndDelete(id);
   res.json(removePlace);
 };
@@ -348,8 +350,16 @@ exports.bookPlace = async (req, res) => {
     req.body.placeId
   ).populate("bookings");
 
+  function betweenDates(bookingDate, bookedStartDate, bookedLastDate) {
+    const result =
+      bookingDate >= bookedStartDate && bookingDate <= bookedLastDate;
+    console.log(result);
+    return result;
+  }
+
   let noError = false;
-  const date1 = new Date(booking.startDate).getTime();
+  const bookingStartDate = new Date(booking.startDate).getTime();
+  const bookingLastDate = new Date(booking.lastDate).getTime();
 
   if (placeToUpdateBooking.bookings.length > 0) {
     const bookingsByRoomType = placeToUpdateBooking.bookings.filter(
@@ -360,11 +370,19 @@ exports.bookPlace = async (req, res) => {
       placeToUpdateBooking.bookings.push(booking._id);
       noError = true;
     } else {
-      const result = bookingsByRoomType.every((book) => {
-        const date2 = new Date(book.lastDate).getTime();
-        const result = date1 > date2;
-        return result;
+      const placeBooked = bookingsByRoomType.every((book) => {
+        const bookedStartDate = new Date(book.startDate).getTime();
+        const bookedLastDate = new Date(book.lastDate).getTime();
+       const edgeCase =
+        bookingStartDate < bookedStartDate && bookingLastDate > bookedLastDate;
+
+      const result =
+        !betweenDates(bookingStartDate, bookedStartDate, bookedLastDate) &&
+        !betweenDates(bookingLastDate, bookedStartDate, bookedLastDate) &&
+        !edgeCase;
+      return result;
       });
+      const result = placeBooked.every((r) => r);
       if (result) {
         placeToUpdateBooking.bookings.push(booking._id);
         noError = true;
