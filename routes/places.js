@@ -29,6 +29,9 @@ router.get("/get/approved", placesController.approvedList);
 router.get("/get/approved/:id", placesController.getSinglePlace);
 router.get("/get/booking", isAuth, placesController.getUserBookedPlaces);
 router.get("/get/listing", isAuth, placesController.getUserListing);
+router.get("/get/favourites", isAuth, placesController.getFavourites);
+
+router.post("/add/favourites", isAuth, placesController.addToFavourites);
 
 router.post(
   "/add",

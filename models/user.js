@@ -19,6 +19,7 @@ const userSchema = Schema({
     required: true,
   },
   listing: [{ type: Schema.Types.ObjectId, ref: 'ApprovedPlace' }],
+  favourites: [{ type: Schema.Types.ObjectId, ref: 'ApprovedPlace' }],
 });
 
 module.exports = mongoose.model("User", userSchema);

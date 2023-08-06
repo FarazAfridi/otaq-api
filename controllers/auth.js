@@ -17,6 +17,7 @@ exports.signup = (req, res) => {
         password: hashedPw,
         role: "User",
         listing: [],
+        favourites: []
       });
       return user.save();
     })

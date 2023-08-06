@@ -234,13 +234,12 @@ exports.approvedList = async (req, res) => {
   if (city) {
     upperCasedFirstLetter = city.charAt(0).toUpperCase() + city.slice(1);
   }
-  const roomType = req.query.roomtype;
-  const persons = req.query.persons;
+  const searchQuery = req.query.searchquery;
   let places;
 
-  if (roomType && city && persons) {
+  if (searchQuery && city) {
     places = await ApprovedPlace.find({
-      $and: [{ roomType }, { city: upperCasedFirstLetter }, { persons }],
+      $and: [{name: searchQuery }, { city: upperCasedFirstLetter }],
     });
   } else if (city) {
     places = await ApprovedPlace.find({ city: upperCasedFirstLetter });
@@ -353,7 +352,6 @@ exports.bookPlace = async (req, res) => {
   function betweenDates(bookingDate, bookedStartDate, bookedLastDate) {
     const result =
       bookingDate >= bookedStartDate && bookingDate <= bookedLastDate;
-    console.log(result);
     return result;
   }
 
@@ -439,4 +437,20 @@ exports.getUserListing = async (req, res) => {
   const userId = req.user.userId;
   const user = await User.find({ _id: userId }).populate("listing");
   res.json(user);
+};
+
+
+exports.addToFavourites = async (req, res) => {
+  const userId = req.user.userId;
+  const placeId = req.body.placeId;
+
+  const userDoc = await User.findById(userId);
+  userDoc.favourites.push(placeId);
+  userDoc.save();
+}
+
+exports.getFavourites = async (req, res) => {
+  const userId = req.user.userId;
+  const favourites = await User.find({ _id: userId }).populate("favourites");
+  res.json(favourites);
 };
