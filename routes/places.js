@@ -32,6 +32,7 @@ router.get("/get/listing", isAuth, placesController.getUserListing);
 router.get("/get/favourites", isAuth, placesController.getFavourites);
 
 router.post("/add/favourites", isAuth, placesController.addToFavourites);
+router.post("/remove/favourites", isAuth, placesController.RemoveFromFavourites);
 
 router.post(
   "/add",

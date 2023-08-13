@@ -239,7 +239,7 @@ exports.approvedList = async (req, res) => {
 
   if (searchQuery && city) {
     places = await ApprovedPlace.find({
-      $and: [{name: searchQuery }, { city: upperCasedFirstLetter }],
+      $and: [{ name: searchQuery }, { city: upperCasedFirstLetter }],
     });
   } else if (city) {
     places = await ApprovedPlace.find({ city: upperCasedFirstLetter });
@@ -371,14 +371,15 @@ exports.bookPlace = async (req, res) => {
       const placeBooked = bookingsByRoomType.every((book) => {
         const bookedStartDate = new Date(book.startDate).getTime();
         const bookedLastDate = new Date(book.lastDate).getTime();
-       const edgeCase =
-        bookingStartDate < bookedStartDate && bookingLastDate > bookedLastDate;
+        const edgeCase =
+          bookingStartDate < bookedStartDate &&
+          bookingLastDate > bookedLastDate;
 
-      const result =
-        !betweenDates(bookingStartDate, bookedStartDate, bookedLastDate) &&
-        !betweenDates(bookingLastDate, bookedStartDate, bookedLastDate) &&
-        !edgeCase;
-      return result;
+        const result =
+          !betweenDates(bookingStartDate, bookedStartDate, bookedLastDate) &&
+          !betweenDates(bookingLastDate, bookedStartDate, bookedLastDate) &&
+          !edgeCase;
+        return result;
       });
       const result = placeBooked.every((r) => r);
       if (result) {
@@ -439,7 +440,6 @@ exports.getUserListing = async (req, res) => {
   res.json(user);
 };
 
-
 exports.addToFavourites = async (req, res) => {
   const userId = req.user.userId;
   const placeId = req.body.placeId;
@@ -447,10 +447,27 @@ exports.addToFavourites = async (req, res) => {
   const userDoc = await User.findById(userId);
   userDoc.favourites.push(placeId);
   userDoc.save();
-}
+
+  res.json("place added to favourites");
+};
+
+exports.RemoveFromFavourites = async (req, res) => {
+  const userId = req.user.userId;
+  const placeId = req.body.placeId;
+
+  const userDoc = await User.findById(userId);
+  const newFavourites = userDoc.favourites.filter(
+    (place) => place.toString() !== placeId
+  );
+  userDoc.favourites = newFavourites
+  userDoc.save()
+
+  res.json("place removed from favourites");
+};
 
 exports.getFavourites = async (req, res) => {
   const userId = req.user.userId;
   const favourites = await User.find({ _id: userId }).populate("favourites");
-  res.json(favourites);
+  const ids = favourites[0].favourites.map((fav) => fav._id);
+  res.json(ids);
 };
