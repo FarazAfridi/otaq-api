@@ -445,8 +445,11 @@ exports.addToFavourites = async (req, res) => {
   const placeId = req.body.placeId;
 
   const userDoc = await User.findById(userId);
+  const exist = userDoc.favourites.find(fav => fav.toString() === placeId)
+  if (!exist) {
   userDoc.favourites.push(placeId);
   userDoc.save();
+  }
 
   res.json("place added to favourites");
 };
@@ -466,8 +469,14 @@ exports.RemoveFromFavourites = async (req, res) => {
 };
 
 exports.getFavourites = async (req, res) => {
+  const complete = req.query.complete
   const userId = req.user.userId;
-  const favourites = await User.find({ _id: userId }).populate("favourites");
-  const ids = favourites[0].favourites.map((fav) => fav._id);
-  res.json(ids);
+  const data = await User.find({ _id: userId }).populate("favourites");
+  
+  if(!complete) {
+    const ids = data[0].favourites.map((fav) => fav._id);
+    res.json(ids)
+  } else {
+    res.json(data[0].favourites);
+  }
 };
