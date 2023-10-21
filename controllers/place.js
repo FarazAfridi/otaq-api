@@ -5,8 +5,20 @@ const User = require("../models/user");
 require("dotenv").config();
 const nodemailer = require("nodemailer");
 const fs = require("fs");
-const path = require("path");
 const approvedPlace = require("../models/approvedPlace");
+const cloudinary = require("cloudinary").v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET,
+});
+async function handleUpload(file) {
+  const res = await cloudinary.uploader.upload(file, {
+    resource_type: "auto",
+  });
+  return res;
+}
 
 const mail = nodemailer.createTransport({
   service: "gmail",
@@ -39,55 +51,139 @@ exports.add = async (req, res) => {
   let room2 = [];
   let room3 = [];
 
-  req.files.room1.forEach((item) => {
-    const buffer = fs.readFileSync(item.path, { encoding: "base64" });
-    room1.push({ contentType: item.mimetype, data: buffer });
-  });
+    // req.files.room1.forEach(async (item) => {
+    //   const b64 = Buffer.from(item.buffer).toString("base64");
+    //   let dataURI = "data:" + item.mimetype + ";base64," + b64;
+    //   const cldRes = await handleUpload(dataURI);
+    //   room1.push({ contentType: item.mimetype, data: cldRes.url });
+    // });
 
-  req.files.room2.forEach((item) => {
-    const buffer = fs.readFileSync(item.path, { encoding: "base64" });
-    room2.push({ contentType: item.mimetype, data: buffer });
-  });
+    // req.files.room2.forEach(async (item) => {
+    //   const b64 = Buffer.from(item.buffer).toString("base64");
+    //   let dataURI = "data:" + item.mimetype + ";base64," + b64;
+    //   const cldRes = await handleUpload(dataURI);
+    //   room2.push({ contentType: item.mimetype, data: cldRes.url });
+    // });
 
-  req.files.room3.forEach((item) => {
-    const buffer = fs.readFileSync(item.path, { encoding: "base64" });
-    room3.push({ contentType: item.mimetype, data: buffer });
-  });
+  
+    
+    req.files.room1.forEach(function(item){
+      
+      const b64 = Buffer.from(item.buffer).toString("base64");
+      let dataURI = "data:" + item.mimetype + ";base64," + b64;
+      handleUpload(dataURI).then(data => {
+        room1.push({ contentType: item.mimetype, data: data.url });
+      })
+      
+    });
+    req.files.room2.forEach(function(item, index){
 
-  const unApprovedPlace = await new UnApprovedPlace({
-    user: req.user.userId,
-    name: name,
-    description: description,
-    city: city,
-    totalCapacity:
-      Number(room1Capacity) + Number(room2Capacity) + Number(room3Capacity),
-    roomOne: {
-      name: room1Name,
-      description: room1Description,
-      price: room1Price,
-      images: room1,
-      capacity: room1Capacity,
-    },
+      const b64 = Buffer.from(item.buffer).toString("base64");
+      let dataURI = "data:" + item.mimetype + ";base64," + b64;
+      handleUpload(dataURI).then(data => {
+        room2.push({ contentType: item.mimetype, data: data.url });
+      })
+      
+    });
+    req.files.room3.forEach(function(item, index){
+      
+      const b64 = Buffer.from(item.buffer).toString("base64");
+      let dataURI = "data:" + item.mimetype + ";base64," + b64;
+      handleUpload(dataURI).then(data => {
+        room3.push({ contentType: item.mimetype, data: data.url });
+      });
+      
+    });
 
-    roomTwo: {
-      name: room2Name,
-      description: room2Description,
-      price: room2Price,
-      images: room2,
-      capacity: room2Capacity,
-    },
+  
 
-    roomThree: {
-      name: room3Name,
-      description: room3Description,
-      price: room3Price,
-      images: room3,
-      capacity: room3Capacity,
-    },
-  });
-  await unApprovedPlace.save();
+//     for (var i = 0; i < req.files.room1.length; i++) { 
 
-  res.json(unApprovedPlace);
+//       const b64 = Buffer.from(req.files.room1[i].buffer).toString("base64");
+//       let dataURI = "data:" + req.files.room1[i].mimetype + ";base64," + b64;
+//       const cldRes = await handleUpload(dataURI);
+//       room1.push({ contentType: req.files.room1[i].mimetype, data: cldRes.url });
+//     console.log('called 1')
+
+//   } 
+//   for (var i = 0; i < req.files.room2.length; i++) { 
+
+//     const b64 = Buffer.from(req.files.room1[i].buffer).toString("base64");
+//     let dataURI = "data:" + req.files.room1[i].mimetype + ";base64," + b64;
+//     const cldRes = await handleUpload(dataURI);
+//     room2.push({ contentType: req.files.room1[i].mimetype, data: cldRes.url });
+//     console.log('called 2')
+// } 
+// for (var i = 0; i < req.files.room3.length; i++) { 
+
+//   const b64 = Buffer.from(req.files.room1[i].buffer).toString("base64");
+//   let dataURI = "data:" + req.files.room1[i].mimetype + ";base64," + b64;
+//   const cldRes = await handleUpload(dataURI);
+//   room2.push({ contentType: req.files.room1[i].mimetype, data: cldRes.url });
+//   console.log('called 3')
+
+// } 
+
+    // req.files.room3.forEach((item) => {
+    //   const b64 = Buffer.from(item.buffer).toString("base64");
+    //   let dataURI = "data:" + item.mimetype + ";base64," + b64;
+    //   const cldRes = await handleUpload(dataURI);
+    //   room3.push({ contentType: item.mimetype, data: cldRes.url });
+    // });
+
+  // req.files.room1.forEach((item) => {
+  //   const buffer = fs.readFileSync(item.path, { encoding: "base64" });
+  //   room1.push({ contentType: item.mimetype, data: buffer });
+  // });
+
+  // req.files.room2.forEach((item) => {
+  //   const buffer = fs.readFileSync(item.path, { encoding: "base64" });
+  //   room2.push({ contentType: item.mimetype, data: buffer });
+  // });
+
+  // req.files.room3.forEach((item) => {
+  //   const buffer = fs.readFileSync(item.path, { encoding: "base64" });
+  //   room3.push({ contentType: item.mimetype, data: buffer });
+  // });
+  
+  setTimeout(async () => {
+    const unApprovedPlace = await new UnApprovedPlace({
+      user: req.user.userId,
+      name: name,
+      description: description,
+      city: city,
+      totalCapacity:
+        Number(room1Capacity) + Number(room2Capacity) + Number(room3Capacity),
+      roomOne: {
+        name: room1Name,
+        description: room1Description,
+        price: room1Price,
+        images: room1,
+        capacity: room1Capacity,
+      },
+  
+      roomTwo: {
+        name: room2Name,
+        description: room2Description,
+        price: room2Price,
+        images: room2,
+        capacity: room2Capacity,
+      },
+  
+      roomThree: {
+        name: room3Name,
+        description: room3Description,
+        price: room3Price,
+        images: room3,
+        capacity: room3Capacity,
+      },
+    });
+    await unApprovedPlace.save();
+    setTimeout(() => {
+      res.json(unApprovedPlace);
+    }, 2000)
+    
+  }, 5000)
 };
 
 exports.unApprovedList = async (req, res) => {
@@ -445,10 +541,10 @@ exports.addToFavourites = async (req, res) => {
   const placeId = req.body.placeId;
 
   const userDoc = await User.findById(userId);
-  const exist = userDoc.favourites.find(fav => fav.toString() === placeId)
+  const exist = userDoc.favourites.find((fav) => fav.toString() === placeId);
   if (!exist) {
-  userDoc.favourites.push(placeId);
-  userDoc.save();
+    userDoc.favourites.push(placeId);
+    userDoc.save();
   }
 
   res.json("place added to favourites");
@@ -462,20 +558,20 @@ exports.RemoveFromFavourites = async (req, res) => {
   const newFavourites = userDoc.favourites.filter(
     (place) => place.toString() !== placeId
   );
-  userDoc.favourites = newFavourites
-  userDoc.save()
+  userDoc.favourites = newFavourites;
+  userDoc.save();
 
   res.json("place removed from favourites");
 };
 
 exports.getFavourites = async (req, res) => {
-  const complete = req.query.complete
+  const complete = req.query.complete;
   const userId = req.user.userId;
   const data = await User.find({ _id: userId }).populate("favourites");
-  
-  if(!complete) {
+
+  if (!complete) {
     const ids = data[0].favourites.map((fav) => fav._id);
-    res.json(ids)
+    res.json(ids);
   } else {
     res.json(data[0].favourites);
   }

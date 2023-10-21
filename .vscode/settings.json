@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "undefined/subscriptions/6bcda1f3-3e80-448b-985c-5cf383a82599/resourceGroups/appsvc_linux_centralus/providers/Microsoft.Web/sites/otaq-api",
+    "appService.deploySubpath": "."
+}

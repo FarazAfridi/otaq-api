@@ -9,20 +9,25 @@ const isAdmin = require("../middlewares/is_admin");
 
 const multer = require("multer");
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "./uploads/");
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(
-      null,
-      file.originalname + "-" + uniqueSuffix + "." + file.mimetype.split("/")[1]
-    );
-  },
-});
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, "./uploads/");
+//   },
+//   filename: function (req, file, cb) {
+//     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+//     cb(
+//       null,
+//       file.originalname + "-" + uniqueSuffix + "." + file.mimetype.split("/")[1]
+//     );
+//   },
+// });
 
-const upload = multer({ storage: storage });
+// const upload = multer({ storage: storage });
+
+const storage = new multer.memoryStorage();
+const upload = multer({
+  storage,
+});
 
 router.get("/get/unapproved", isAuth, isAdmin, placesController.unApprovedList);
 router.get("/get/approved", placesController.approvedList);
@@ -38,7 +43,6 @@ router.post(
   "/add",
   upload.fields([{ name: "room1" }, { name: "room2" }, { name: "room3" }]),
   isAuth,
-  isVendor,
   placesController.add
 );
 router.post(
