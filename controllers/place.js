@@ -51,85 +51,75 @@ exports.add = async (req, res) => {
   let room2 = [];
   let room3 = [];
 
-    // req.files.room1.forEach(async (item) => {
-    //   const b64 = Buffer.from(item.buffer).toString("base64");
-    //   let dataURI = "data:" + item.mimetype + ";base64," + b64;
-    //   const cldRes = await handleUpload(dataURI);
-    //   room1.push({ contentType: item.mimetype, data: cldRes.url });
-    // });
+  // req.files.room1.forEach(async (item) => {
+  //   const b64 = Buffer.from(item.buffer).toString("base64");
+  //   let dataURI = "data:" + item.mimetype + ";base64," + b64;
+  //   const cldRes = await handleUpload(dataURI);
+  //   room1.push({ contentType: item.mimetype, data: cldRes.url });
+  // });
 
-    // req.files.room2.forEach(async (item) => {
-    //   const b64 = Buffer.from(item.buffer).toString("base64");
-    //   let dataURI = "data:" + item.mimetype + ";base64," + b64;
-    //   const cldRes = await handleUpload(dataURI);
-    //   room2.push({ contentType: item.mimetype, data: cldRes.url });
-    // });
+  // req.files.room2.forEach(async (item) => {
+  //   const b64 = Buffer.from(item.buffer).toString("base64");
+  //   let dataURI = "data:" + item.mimetype + ";base64," + b64;
+  //   const cldRes = await handleUpload(dataURI);
+  //   room2.push({ contentType: item.mimetype, data: cldRes.url });
+  // });
 
-  
-    
-    req.files.room1.forEach(function(item){
-      
-      const b64 = Buffer.from(item.buffer).toString("base64");
-      let dataURI = "data:" + item.mimetype + ";base64," + b64;
-      handleUpload(dataURI).then(data => {
-        room1.push({ contentType: item.mimetype, data: data.url });
-      })
-      
+  req.files.room1.forEach(function (item) {
+    const b64 = Buffer.from(item.buffer).toString("base64");
+    let dataURI = "data:" + item.mimetype + ";base64," + b64;
+    handleUpload(dataURI).then((data) => {
+      room1.push({ contentType: item.mimetype, data: data.url });
     });
-    req.files.room2.forEach(function(item, index){
-
-      const b64 = Buffer.from(item.buffer).toString("base64");
-      let dataURI = "data:" + item.mimetype + ";base64," + b64;
-      handleUpload(dataURI).then(data => {
-        room2.push({ contentType: item.mimetype, data: data.url });
-      })
-      
+  });
+  req.files.room2.forEach(function (item, index) {
+    const b64 = Buffer.from(item.buffer).toString("base64");
+    let dataURI = "data:" + item.mimetype + ";base64," + b64;
+    handleUpload(dataURI).then((data) => {
+      room2.push({ contentType: item.mimetype, data: data.url });
     });
-    req.files.room3.forEach(function(item, index){
-      
-      const b64 = Buffer.from(item.buffer).toString("base64");
-      let dataURI = "data:" + item.mimetype + ";base64," + b64;
-      handleUpload(dataURI).then(data => {
-        room3.push({ contentType: item.mimetype, data: data.url });
-      });
-      
+  });
+  req.files.room3.forEach(function (item, index) {
+    const b64 = Buffer.from(item.buffer).toString("base64");
+    let dataURI = "data:" + item.mimetype + ";base64," + b64;
+    handleUpload(dataURI).then((data) => {
+      room3.push({ contentType: item.mimetype, data: data.url });
     });
+  });
 
-  
+  //     for (var i = 0; i < req.files.room1.length; i++) {
 
-//     for (var i = 0; i < req.files.room1.length; i++) { 
+  //       const b64 = Buffer.from(req.files.room1[i].buffer).toString("base64");
+  //       let dataURI = "data:" + req.files.room1[i].mimetype + ";base64," + b64;
+  //       const cldRes = await handleUpload(dataURI);
+  //       room1.push({ contentType: req.files.room1[i].mimetype, data: cldRes.url });
+  //     console.log('called 1')
 
-//       const b64 = Buffer.from(req.files.room1[i].buffer).toString("base64");
-//       let dataURI = "data:" + req.files.room1[i].mimetype + ";base64," + b64;
-//       const cldRes = await handleUpload(dataURI);
-//       room1.push({ contentType: req.files.room1[i].mimetype, data: cldRes.url });
-//     console.log('called 1')
+  //   }
+  //   for (var i = 0; i < req.files.room2.length; i++) {
 
-//   } 
-//   for (var i = 0; i < req.files.room2.length; i++) { 
+  //     const b64 = Buffer.from(req.files.room1[i].buffer).toString("base64");
+  //     let dataURI = "data:" + req.files.room1[i].mimetype + ";base64," + b64;
+  //     const cldRes = await handleUpload(dataURI);
+  //     room2.push({ contentType: req.files.room1[i].mimetype, data: cldRes.url });
+  //     console.log('called 2')
+  // }
+  // for (var i = 0; i < req.files.room3.length; i++) {
 
-//     const b64 = Buffer.from(req.files.room1[i].buffer).toString("base64");
-//     let dataURI = "data:" + req.files.room1[i].mimetype + ";base64," + b64;
-//     const cldRes = await handleUpload(dataURI);
-//     room2.push({ contentType: req.files.room1[i].mimetype, data: cldRes.url });
-//     console.log('called 2')
-// } 
-// for (var i = 0; i < req.files.room3.length; i++) { 
+  //   const b64 = Buffer.from(req.files.room1[i].buffer).toString("base64");
+  //   let dataURI = "data:" + req.files.room1[i].mimetype + ";base64," + b64;
+  //   const cldRes = await handleUpload(dataURI);
+  //   room2.push({ contentType: req.files.room1[i].mimetype, data: cldRes.url });
+  //   console.log('called 3')
 
-//   const b64 = Buffer.from(req.files.room1[i].buffer).toString("base64");
-//   let dataURI = "data:" + req.files.room1[i].mimetype + ";base64," + b64;
-//   const cldRes = await handleUpload(dataURI);
-//   room2.push({ contentType: req.files.room1[i].mimetype, data: cldRes.url });
-//   console.log('called 3')
+  // }
 
-// } 
-
-    // req.files.room3.forEach((item) => {
-    //   const b64 = Buffer.from(item.buffer).toString("base64");
-    //   let dataURI = "data:" + item.mimetype + ";base64," + b64;
-    //   const cldRes = await handleUpload(dataURI);
-    //   room3.push({ contentType: item.mimetype, data: cldRes.url });
-    // });
+  // req.files.room3.forEach((item) => {
+  //   const b64 = Buffer.from(item.buffer).toString("base64");
+  //   let dataURI = "data:" + item.mimetype + ";base64," + b64;
+  //   const cldRes = await handleUpload(dataURI);
+  //   room3.push({ contentType: item.mimetype, data: cldRes.url });
+  // });
 
   // req.files.room1.forEach((item) => {
   //   const buffer = fs.readFileSync(item.path, { encoding: "base64" });
@@ -145,7 +135,7 @@ exports.add = async (req, res) => {
   //   const buffer = fs.readFileSync(item.path, { encoding: "base64" });
   //   room3.push({ contentType: item.mimetype, data: buffer });
   // });
-  
+
   setTimeout(async () => {
     const unApprovedPlace = await new UnApprovedPlace({
       user: req.user.userId,
@@ -161,7 +151,7 @@ exports.add = async (req, res) => {
         images: room1,
         capacity: room1Capacity,
       },
-  
+
       roomTwo: {
         name: room2Name,
         description: room2Description,
@@ -169,7 +159,7 @@ exports.add = async (req, res) => {
         images: room2,
         capacity: room2Capacity,
       },
-  
+
       roomThree: {
         name: room3Name,
         description: room3Description,
@@ -181,14 +171,12 @@ exports.add = async (req, res) => {
     await unApprovedPlace.save();
     setTimeout(() => {
       res.json(unApprovedPlace);
-    }, 2000)
-    
-  }, 5000)
+    }, 2000);
+  }, 5000);
 };
 
 exports.unApprovedList = async (req, res) => {
   const unapprovedPlaces = await UnApprovedPlace.find({});
-  console.log(unapprovedPlaces);
   res.json(unapprovedPlaces);
 };
 
@@ -360,7 +348,6 @@ exports.approveOrder = async (req, res) => {
   const placeToUpdateBooking = await ApprovedPlace.findById(fullData.place._id);
   placeToUpdateBooking.bookings.push(fullData._id);
   await placeToUpdateBooking.save();
-  console.log(placeToUpdateBooking);
 
   let date1 = new Date(fullData.startDate);
   date1.setMinutes(date1.getMinutes() - date1.getTimezoneOffset());
@@ -575,4 +562,28 @@ exports.getFavourites = async (req, res) => {
   } else {
     res.json(data[0].favourites);
   }
+};
+
+exports.updateListing = async (req, res) => {
+  const roomOnePrice = req.body.roomOnePrice;
+  const roomTwoPrice = req.body.roomTwoPrice;
+  const roomThreePrice = req.body.roomThreePrice;
+
+  const placeId = req.body.placeId;
+
+  if (!placeId) {
+    res.json({ message: "place not found" });
+  }
+
+  if (!roomOnePrice && !roomTwoPrice && !roomThreePrice) {
+    res.json("no prices were found");
+  }
+
+  const place = await ApprovedPlace.findOne({ _id: placeId });
+  place.roomOne.price = roomOnePrice;
+  place.roomTwo.price = roomTwoPrice;
+  place.roomThree.price = roomThreePrice;
+  await place.save();
+
+  res.json(place);
 };
