@@ -29,6 +29,7 @@ const mail = nodemailer.createTransport({
 });
 
 exports.add = async (req, res) => {
+  req.setTimeout(0);
   const {
     name,
     room1Name,
@@ -47,9 +48,9 @@ exports.add = async (req, res) => {
     room3Capacity,
   } = req.body;
 
-  let room1 = [];
-  let room2 = [];
-  let room3 = [];
+  // let room1 = [];
+  // let room2 = [];
+  // let room3 = [];
 
   // req.files.room1.forEach(async (item) => {
   //   const b64 = Buffer.from(item.buffer).toString("base64");
@@ -65,27 +66,57 @@ exports.add = async (req, res) => {
   //   room2.push({ contentType: item.mimetype, data: cldRes.url });
   // });
 
-  req.files.room1.forEach(function (item) {
-    const b64 = Buffer.from(item.buffer).toString("base64");
-    let dataURI = "data:" + item.mimetype + ";base64," + b64;
-    handleUpload(dataURI).then((data) => {
-      room1.push({ contentType: item.mimetype, data: data.url });
-    });
-  });
-  req.files.room2.forEach(function (item, index) {
-    const b64 = Buffer.from(item.buffer).toString("base64");
-    let dataURI = "data:" + item.mimetype + ";base64," + b64;
-    handleUpload(dataURI).then((data) => {
-      room2.push({ contentType: item.mimetype, data: data.url });
-    });
-  });
-  req.files.room3.forEach(function (item, index) {
-    const b64 = Buffer.from(item.buffer).toString("base64");
-    let dataURI = "data:" + item.mimetype + ";base64," + b64;
-    handleUpload(dataURI).then((data) => {
-      room3.push({ contentType: item.mimetype, data: data.url });
-    });
-  });
+  const room1Images = req.files.room1
+  const room2Images = req.files.room2
+  const room3Images = req.files.room3
+
+  async function uploadImagesToCloudinary(room) {
+    const images = [];
+
+    for (const file of room) {
+      const b64 = Buffer.from(file.buffer).toString("base64");
+      let dataURI = "data:" + file.mimetype + ";base64," + b64;
+
+      const response = await handleUpload(dataURI)
+      console.log(response)
+      images.push({ contentType: file.mimetype, data: response.url });
+       
+    }
+    return images
+  }
+
+  const room1 = await uploadImagesToCloudinary(room1Images)
+  const room2 = await uploadImagesToCloudinary(room2Images)
+  const room3 = await uploadImagesToCloudinary(room3Images)
+console.log(room1, room2, room3)
+
+  
+
+  /// newwww
+  // req.files.room1.forEach(function (item) {
+  //   const b64 = Buffer.from(item.buffer).toString("base64");
+  //   let dataURI = "data:" + item.mimetype + ";base64," + b64;
+  //   handleUpload(dataURI).then((data) => {
+  //     room1.push({ contentType: item.mimetype, data: data.url });
+  //   }).catch(err => console.log(err))
+  // });
+  // req.files.room2.forEach(function (item, index) {
+  //   const b64 = Buffer.from(item.buffer).toString("base64");
+  //   let dataURI = "data:" + item.mimetype + ";base64," + b64;
+  //   handleUpload(dataURI).then((data) => {
+  //     room2.push({ contentType: item.mimetype, data: data.url });
+  //   }).catch(err => console.log(err))
+  // });
+  // req.files.room3.forEach(function (item, index) {
+  //   const b64 = Buffer.from(item.buffer).toString("base64");
+  //   let dataURI = "data:" + item.mimetype + ";base64," + b64;
+  //   handleUpload(dataURI).then((data) => {
+  //     room3.push({ contentType: item.mimetype, data: data.url });
+  //   }).catch(err => console.log(err))
+  // });
+////////////////////////////////
+
+
 
   //     for (var i = 0; i < req.files.room1.length; i++) {
 
@@ -136,7 +167,6 @@ exports.add = async (req, res) => {
   //   room3.push({ contentType: item.mimetype, data: buffer });
   // });
 
-  setTimeout(async () => {
     const unApprovedPlace = await new UnApprovedPlace({
       user: req.user.userId,
       name: name,
@@ -172,7 +202,7 @@ exports.add = async (req, res) => {
     setTimeout(() => {
       res.json(unApprovedPlace);
     }, 2000);
-  }, 5000);
+
 };
 
 exports.unApprovedList = async (req, res) => {
@@ -494,7 +524,7 @@ exports.removeApprovedPlace = async (req, res) => {
   res.json(removePlace);
 };
 
-exports.getCount = async (req, res) => {
+exports.getAdminPanelCount = async (req, res) => {
   const ordersCount = await Booking.count();
   const placesCount = await ApprovedPlace.count();
   const unapprovedPlacesCount = await UnApprovedPlace.count();
@@ -506,6 +536,19 @@ exports.getCount = async (req, res) => {
     users: usersCount,
   });
 };
+
+// exports.getDashboardCount = async (req, res) => {
+//   const ordersCount = await Booking.count();
+//   const placesCount = await ApprovedPlace.count();
+//   const unapprovedPlacesCount = await UnApprovedPlace.count();
+//   const usersCount = await User.count();
+//   res.json({
+//     orders: ordersCount,
+//     places: placesCount,
+//     unapprovedPlaces: unapprovedPlacesCount,
+//     users: usersCount,
+//   });
+// };
 
 exports.getUserBookedPlaces = async (req, res) => {
   const userId = req.user.userId;
@@ -586,4 +629,12 @@ exports.updateListing = async (req, res) => {
   await place.save();
 
   res.json(place);
+};
+
+exports.getListingBookings = async (req, res) => {
+  const bookings = await Booking.find({}).populate("place user");
+  const filteredBookings = bookings.filter(
+    (booking) => booking.place.user.toString() === req.user.userId
+  );
+  res.json(filteredBookings);
 };
